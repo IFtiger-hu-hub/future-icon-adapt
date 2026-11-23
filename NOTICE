@@ -1,0 +1,22 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+
+future-icon-adapt — Local Desktop Icon Adaptation Tool for KDE Plasma
+Copyright (c) 2026 IFtiger-hu-hub
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+Third-Party Icon Assets Notice:
+This repository does not redistribute third-party icon assets.
+Generated themes on your machine may copy or symlink icons from themes you
+already installed; those assets remain under their respective upstream licenses.

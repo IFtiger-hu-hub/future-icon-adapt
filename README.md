@@ -10,6 +10,18 @@
 
 ---
 
+## 界面预览
+
+### 1. 应用列表与六大模块组合预览
+
+![主界面：应用列表与模块组合预览](docs/screenshots/01-module-composer.png)
+
+### 2. 单应用图标选择、统一外形遮罩与主题安装
+
+![单应用手选图标、统一外形遮罩与安装主题](docs/screenshots/02-app-picker-and-mask.png)
+
+---
+
 ## 核心特性
 
 - **按模块组合主题（Modular Theme Composition）**

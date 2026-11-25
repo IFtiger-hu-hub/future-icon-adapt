@@ -6,16 +6,25 @@ import QtQuick.Controls as QQC
 // an ancestor Flickable (e.g. a page ScrollView). An open popup keeps its
 // normal list scrolling and click-to-select. Keyboard is left unchanged.
 //
-// org.kde.desktop (qqc2-desktop-style) sets wheelEnabled: true on ComboBox.
-// QQuickComboBox::wheelEvent then calls increment/decrementCurrentIndex and
-// emits activated whenever the popup is closed. A child WheelHandler does
-// not reliably stop that C++ path: window-targeted synthetic events can be
-// eaten by the handler, but delivery to the ComboBox item (the real hover
-// path) still runs wheelEvent. Force wheelEnabled off so the style cannot
-// leave the C++ path armed.
+// Two style-specific paths exist in real Plasma sessions:
+//
+// 1) org.kde.desktop (qqc2-desktop-style) sets wheelEnabled: true, so
+//    QQuickComboBox::wheelEvent increment/decrements the index. Force
+//    wheelEnabled off so that C++ path stays disarmed.
+//
+// 2) org.kde.breeze (the style this session actually loads via the KDE
+//    platform theme) leaves wheelEnabled false, but installs its own
+//    WheelHandler { target: control } that calls incrementCurrentIndex /
+//    decrementCurrentIndex while the popup is closed. A child WheelHandler
+//    and wheelEnabled: false do not stop that handler. sendEvent() to the
+//    ComboBox item also misses it; window/pointer delivery is the path
+//    that matches a real hover wheel. Disarm foreign WheelHandlers on
+//    this control and no-op the QML increment/decrement entry points
+//    while collapsed.
 QQC.ComboBox {
     id: control
     wheelEnabled: false
+    onWheelEnabledChanged: if (control.wheelEnabled) control.wheelEnabled = false
 
     function ancestorFlickable() {
         let p = control.parent
@@ -34,15 +43,61 @@ QQC.ComboBox {
         return !!(control.down || (control.popup && control.popup.opened))
     }
 
-    Component.onCompleted: control.wheelEnabled = false
+    function disarmForeignWheelHandlers() {
+        control.wheelEnabled = false
+        function consider(obj) {
+            if (!obj || obj === closedWheelGate)
+                return
+            if (obj instanceof WheelHandler) {
+                obj.enabled = false
+                if (obj.enabledChanged && !obj._iconAdaptWheelDisarmed) {
+                    obj._iconAdaptWheelDisarmed = true
+                    obj.enabledChanged.connect(function() {
+                        if (obj.enabled && !control.popupIsOpen())
+                            obj.enabled = false
+                    })
+                }
+            }
+        }
+        if (control.data) {
+            for (let i = 0; i < control.data.length; ++i)
+                consider(control.data[i])
+        }
+        if (control.children) {
+            for (let i = 0; i < control.children.length; ++i)
+                consider(control.children[i])
+        }
+    }
+
+    // Shadow the QML-visible invokables used by org.kde.breeze's style
+    // WheelHandler. C++ key handling still calls the C++ methods directly,
+    // so keyboard changes/opens stay intact.
+    function incrementCurrentIndex() {
+        // Closed: ignore QML/style wheel. Open: the popup ListView scrolls
+        // itself; breeze already disables its handler when the popup is visible.
+        if (!control.popupIsOpen())
+            return
+    }
+    function decrementCurrentIndex() {
+        if (!control.popupIsOpen())
+            return
+    }
+
+    Component.onCompleted: {
+        control.wheelEnabled = false
+        disarmForeignWheelHandlers()
+        Qt.callLater(disarmForeignWheelHandlers)
+    }
+    onCountChanged: Qt.callLater(disarmForeignWheelHandlers)
 
     WheelHandler {
+        id: closedWheelGate
+        objectName: "iconAdaptClosedWheelGate"
         // Intercept only while collapsed, so an open popup list still scrolls.
         enabled: !control.popupIsOpen()
-        // Do not narrow to Mouse|TouchPad only: some backends report a
-        // generic or stylus/touchscreen device for the same physical wheel.
         acceptedDevices: PointerDevice.AllDevices
-        grabPermissions: PointerHandler.CanTakeOverFromAnything | PointerHandler.ApprovesTakeOverByAnything
+        // Take the grab if needed, but do not yield it to the style handler.
+        grabPermissions: PointerHandler.CanTakeOverFromAnything
         onWheel: (event) => {
             const f = control.ancestorFlickable()
             if (f && f.interactive !== false) {
@@ -54,8 +109,6 @@ QQC.ComboBox {
                 event.accepted = true
                 return
             }
-            // No scrollable ancestor: still swallow so a leftover style
-            // handler cannot change the closed-box value.
             event.accepted = true
         }
     }

@@ -142,7 +142,7 @@ def main() -> int:
     from PyQt6.QtQuickControls2 import QQuickStyle
 
     QQuickStyle.setStyle("org.kde.desktop")
-    from tests.qtutil import ensure_qt_app
+    from tests.qtutil import ensure_qt_app, find_named_quick_items
     from PyQt6.QtCore import QUrl, QMetaObject, Qt, pyqtSlot
     from PyQt6.QtQml import QQmlApplicationEngine
     from PyQt6.QtQuick import QQuickItem
@@ -452,7 +452,7 @@ Window {{
     root.show()
     # Wait until module source boxes exist and have a model.
     def _src_boxes():
-        return [b for b in root.findChildren(QQuickItem, "moduleSourceBox") if b is not None]
+        return find_named_quick_items(root, "moduleSourceBox")
 
     ok = _pump(
         app,
@@ -464,9 +464,9 @@ Window {{
         be.shutdown()
         fail("moduleSourceBox_not_ready", count=len(boxes))
     src_box = next((b for b in boxes if b.width() > 0 and int(b.property("count") or 0) >= 2), boxes[0])
-    filter_box = root.findChild(QQuickItem, "filterBox")
-    shape_box = root.findChild(QQuickItem, "maskShapeBox")
-    scroll = root.findChild(QQuickItem, "rightPageScroll")
+    filter_box = (find_named_quick_items(root, "filterBox") or [None])[0]
+    shape_box = (find_named_quick_items(root, "maskShapeBox") or [None])[0]
+    scroll = (find_named_quick_items(root, "rightPageScroll") or [root.findChild(QQuickItem, "rightPageScroll")])[0]
     flick = _flickable_of(scroll)
     if filter_box is None or scroll is None or flick is None:
         be.shutdown()

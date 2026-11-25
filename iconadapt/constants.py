@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 TOOL_ID = "future-icon-adapt"
-TOOL_VERSION = "0.2.10"
+TOOL_VERSION = "0.2.11"
 THEME_INTERNAL_NAME = "icon-adapt"
 THEME_DISPLAY_NAME = "Icon Adapt"
 OWNED_MARKER = ".future-icon-adapt-owned"

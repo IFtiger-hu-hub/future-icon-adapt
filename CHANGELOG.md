@@ -2,6 +2,11 @@
 
 本文件记录 `future-icon-adapt` 的版本演进。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.2.11] - 2026-11-25
+
+### 修复
+- 在真实 Plasma 会话使用的 `org.kde.breeze` 样式下，收起的模块来源等下拉框滚轮不再切换选项。此前 0.2.10 只关掉了 `org.kde.desktop` 的 `wheelEnabled` 路径；Breeze 样式在 `wheelEnabled` 为 false 时仍有自己的 `WheelHandler` 调用 `incrementCurrentIndex`。现会停用该样式处理器，收起时忽略其 QML 增减接口，滚轮改用于滚动页面。键盘、点击展开与列表内选择保持不变。
+
 ## [0.2.10] - 2026-11-23
 
 ### 修复与改进
